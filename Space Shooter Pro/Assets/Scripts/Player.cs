@@ -8,6 +8,7 @@ public class Player : MonoBehaviour
 
     [SerializeField] private float _speed = 3.5f;
     [SerializeField] private float _fireRate = 0.5f;
+    [SerializeField] private int _lives = 3;
 
     [SerializeField] private GameObject _laserPrefab;
 
@@ -64,6 +65,17 @@ public class Player : MonoBehaviour
 
         _canFire = Time.time + _fireRate;
         Instantiate(_laserPrefab, laserPosition, Quaternion.identity);
+    }
+
+    /// <summary>
+    /// Damages the player
+    /// </summary>
+    public void Damage()
+    {
+        _lives--;
+
+        if (_lives < 1)
+            Destroy(this.gameObject);
     }
 
     #endregion
