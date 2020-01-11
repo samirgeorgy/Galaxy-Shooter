@@ -26,7 +26,7 @@ public class Enemy : MonoBehaviour
     /// Collection detection for the enemy
     /// </summary>
     /// <param name="other">The colliding object</param>
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.tag.Equals("Laser"))
         {

@@ -10,6 +10,8 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] private GameObject _enemyPrefab;
     [SerializeField] private GameObject _enemyContainer;
 
+    private bool _stopSpawning = false;
+
     #endregion
 
     #region Unity Functions
@@ -31,12 +33,20 @@ public class SpawnManager : MonoBehaviour
     #region Supporting Functions
 
     /// <summary>
+    /// Stops spawning upon player death;
+    /// </summary>
+    public void OnPlayerDeath()
+    {
+        _stopSpawning = true;
+    }
+
+    /// <summary>
     /// The enemy spawning routine
     /// </summary>
     /// <returns></returns>
     IEnumerator SpawnRoutine()
     {
-        while (true)
+        while (_stopSpawning == false)
         {
             Vector3 posToSpawn = new Vector3(Random.Range(-8f, 8f), 7, 0);
             GameObject newEnemy = Instantiate(_enemyPrefab, posToSpawn, Quaternion.identity);
