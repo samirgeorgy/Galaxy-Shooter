@@ -400,3 +400,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 3.5
+  _fireRate: 0.15
+  _canFire: -1
+  _laserPrefab: {fileID: 4572258290269768930, guid: e5981b3659e1a12438a5809e063ecd0d,
+    type: 3}

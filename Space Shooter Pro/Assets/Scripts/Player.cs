@@ -7,6 +7,11 @@ public class Player : MonoBehaviour
     #region Private Variables
 
     [SerializeField] private float _speed = 3.5f;
+    [SerializeField] private float _fireRate = 0.5f;
+
+    [SerializeField] private GameObject _laserPrefab;
+
+    private float _canFire = -1f;
 
     #endregion
 
@@ -22,6 +27,9 @@ public class Player : MonoBehaviour
     void Update()
     {
         CalculateMovement();
+
+        if (Input.GetKeyDown(KeyCode.Space) && (Time.time > _canFire))
+            FireLaser();
     }
 
     #endregion
@@ -45,6 +53,17 @@ public class Player : MonoBehaviour
             transform.position = new Vector3(-11.3f, transform.position.y, 0);
         else if (transform.position.x < -11.3f)
             transform.position = new Vector3(11.3f, transform.position.y, 0);
+    }
+
+    /// <summary>
+    /// Fires the laser
+    /// </summary>
+    private void FireLaser()
+    {
+        Vector3 laserPosition = new Vector3(transform.position.x, transform.position.y + 0.8f, 0);
+
+        _canFire = Time.time + _fireRate;
+        Instantiate(_laserPrefab, laserPosition, Quaternion.identity);
     }
 
     #endregion
