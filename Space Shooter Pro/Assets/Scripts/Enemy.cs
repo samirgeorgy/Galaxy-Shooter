@@ -5,6 +5,9 @@ public class Enemy : MonoBehaviour
     #region Private variables
 
     [SerializeField] private float _speed = 4.0f;
+    [SerializeField] private int _scoreValue = 10;
+
+    Player _player;
 
     #endregion
 
@@ -13,7 +16,7 @@ public class Enemy : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        _player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
     }
 
     // Update is called once per frame
@@ -31,14 +34,20 @@ public class Enemy : MonoBehaviour
         if (other.gameObject.tag.Equals("Laser"))
         {
             Destroy(other.gameObject);
+            
+            if (_player != null)
+                _player.AddScore(_scoreValue);
+
             Destroy(this.gameObject);
         }
         else if (other.gameObject.tag.Equals("Player"))
         {
-            Player player = other.transform.GetComponent<Player>();
 
-            if (player != null)
-                player.Damage();
+            if (_player != null)
+            {
+                _player.AddScore(_scoreValue);
+                _player.Damage();
+            }
 
             Destroy(this.gameObject);
         }

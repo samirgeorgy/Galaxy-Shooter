@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
@@ -9,6 +8,7 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] private float _spawnWait = 5f;
     [SerializeField] private GameObject _enemyPrefab;
     [SerializeField] private GameObject _enemyContainer;
+    [SerializeField] private GameObject[] _powerUps;
 
     private bool _stopSpawning = false;
 
@@ -19,13 +19,8 @@ public class SpawnManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(SpawnRoutine());
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        StartCoroutine(SpawnEnemyRoutine());
+        StartCoroutine(SpawnPowerUpRoutine());
     }
 
     #endregion
@@ -43,8 +38,7 @@ public class SpawnManager : MonoBehaviour
     /// <summary>
     /// The enemy spawning routine
     /// </summary>
-    /// <returns></returns>
-    IEnumerator SpawnRoutine()
+    IEnumerator SpawnEnemyRoutine()
     {
         while (_stopSpawning == false)
         {
@@ -53,6 +47,21 @@ public class SpawnManager : MonoBehaviour
             newEnemy.transform.parent = _enemyContainer.transform;
 
             yield return new WaitForSeconds(_spawnWait);
+        }
+    }
+
+    /// <summary>
+    /// Spawn Routine for powerups
+    /// </summary>
+    IEnumerator SpawnPowerUpRoutine()
+    {
+        while (_stopSpawning == false)
+        {
+            Vector3 posToSpawn = new Vector3(Random.Range(-8f, 8f), 7, 0);
+            int randomPowerUp = Random.Range(0, 3);
+            Instantiate(_powerUps[randomPowerUp], posToSpawn, Quaternion.identity);
+
+            yield return new WaitForSeconds(Random.Range(3, 8));
         }
     }
 
