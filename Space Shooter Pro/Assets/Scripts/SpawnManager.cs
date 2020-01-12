@@ -5,6 +5,8 @@ public class SpawnManager : MonoBehaviour
 {
     #region Private Variables
 
+    static private SpawnManager _instance;
+
     [SerializeField] private float _spawnWait = 5f;
     [SerializeField] private GameObject _enemyPrefab;
     [SerializeField] private GameObject _enemyContainer;
@@ -14,19 +16,39 @@ public class SpawnManager : MonoBehaviour
 
     #endregion
 
+    #region Public Properties
+
+    /// <summary>
+    /// Gets an instance of the SpawnManager
+    /// </summary>
+    static public SpawnManager Instance
+    {
+        get { return _instance; }
+    }
+
+    #endregion
+
     #region Unity Functions
 
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(SpawnEnemyRoutine());
-        StartCoroutine(SpawnPowerUpRoutine());
+        if (_instance == null)
+            _instance = this;
     }
 
     #endregion
 
     #region Supporting Functions
 
+    /// <summary>
+    /// Starts spawning waves of enemies
+    /// </summary>
+    public void StartSpawning()
+    {
+        StartCoroutine(SpawnEnemyRoutine());
+        StartCoroutine(SpawnPowerUpRoutine());
+    }
     /// <summary>
     /// Stops spawning upon player death;
     /// </summary>
@@ -40,6 +62,8 @@ public class SpawnManager : MonoBehaviour
     /// </summary>
     IEnumerator SpawnEnemyRoutine()
     {
+        yield return new WaitForSeconds(3.5f);
+
         while (_stopSpawning == false)
         {
             Vector3 posToSpawn = new Vector3(Random.Range(-8f, 8f), 7, 0);
@@ -55,6 +79,8 @@ public class SpawnManager : MonoBehaviour
     /// </summary>
     IEnumerator SpawnPowerUpRoutine()
     {
+        yield return new WaitForSeconds(3.5f);
+
         while (_stopSpawning == false)
         {
             Vector3 posToSpawn = new Vector3(Random.Range(-8f, 8f), 7, 0);

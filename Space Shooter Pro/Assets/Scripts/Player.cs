@@ -14,12 +14,16 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject _laserPrefab;
     [SerializeField] private GameObject _tripleShotPrefab;
     [SerializeField] private GameObject _shieldVisualizer;
+    [SerializeField] private GameObject _rightEngine;
+    [SerializeField] private GameObject _leftEngine;
+    [SerializeField] private AudioClip _laserSFX;
+
+    private AudioSource _audioSource;
 
     private bool _isTripleShotActive = false;
     private bool _isSpeedBoostActive = false;
     private bool _isShieldActive = false;
     private float _canFire = -1f;
-    private SpawnManager _spawnManager;
 
     #endregion
 
@@ -29,13 +33,12 @@ public class Player : MonoBehaviour
     void Start()
     {
         transform.position = new Vector3(0, 0, 0);
-        _spawnManager = GameObject.FindGameObjectWithTag("SpawnManager").GetComponent<SpawnManager>();
+        _rightEngine.SetActive(false);
+        _leftEngine.SetActive(false);
+        _audioSource = GetComponent<AudioSource>();
 
-        if (_spawnManager == null)
-        {
-            Debug.LogError("The Spawn Manager is null.");
-        }
-
+        if (_audioSource == null)
+            Debug.LogError("Audio Source on the player is null!");
     }
 
     // Update is called once per frame
@@ -85,6 +88,8 @@ public class Player : MonoBehaviour
         {
             Instantiate(_laserPrefab, transform.position + new Vector3(0, 1.05f, 0), Quaternion.identity);
         }
+
+        _audioSource.PlayOneShot(_laserSFX);
     }
 
     /// <summary>
@@ -112,9 +117,14 @@ public class Player : MonoBehaviour
         _lives--;
         UIManager.Instance.UpdateLives(_lives);
 
+        if (_lives == 2)
+            _leftEngine.SetActive(true);
+        else if (_lives == 1)
+            _rightEngine.SetActive(true);
+
         if (_lives < 1)
         {
-            _spawnManager.OnPlayerDeath();
+            SpawnManager.Instance.OnPlayerDeath();
             Destroy(this.gameObject);
         }
     }

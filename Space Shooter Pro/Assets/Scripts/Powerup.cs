@@ -6,6 +6,7 @@ public class Powerup : MonoBehaviour
 
     [SerializeField] private float _speed = 3f;
     [SerializeField] private int _powerupID;
+    [SerializeField] private AudioClip _clip;
 
     #endregion
 
@@ -26,6 +27,8 @@ public class Powerup : MonoBehaviour
         if (collision.tag.Equals("Player"))
         {
             Player player = collision.transform.GetComponent<Player>();
+
+            AudioSource.PlayClipAtPoint(_clip, transform.position);
 
             if (player != null)
             {
