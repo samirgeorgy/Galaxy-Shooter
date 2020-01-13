@@ -6,9 +6,12 @@ public class Enemy : MonoBehaviour
 
     [SerializeField] private float _speed = 4.0f;
     [SerializeField] private int _scoreValue = 10;
+    [SerializeField] private GameObject _laserPrefab;
+
+    private float _fireRate = 3.0f;
+    private float _canFire = -1f;
 
     private AudioSource _audioSource;
-
     private Player _player;
     private Animator _anim;
 
@@ -28,6 +31,17 @@ public class Enemy : MonoBehaviour
     void Update()
     {
         MoveEnemy();
+        
+        if (Time.time > _canFire)
+        {
+            _fireRate = Random.Range(3f, 7f);
+            _canFire = Time.time + _fireRate;
+            GameObject enemyLaser = Instantiate(_laserPrefab, transform.position, Quaternion.identity);
+            Laser[] lasers = enemyLaser.GetComponentsInChildren<Laser>();
+
+            for (int i = 0; i < lasers.Length; i++)
+                lasers[i].AssignEnemyLaser();
+        }
     }
 
     /// <summary>

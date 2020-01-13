@@ -37,6 +37,9 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.R) && _isGameOver)
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+            Application.Quit();
     }
 
     #endregion
