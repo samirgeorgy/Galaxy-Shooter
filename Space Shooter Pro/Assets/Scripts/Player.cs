@@ -5,24 +5,32 @@ public class Player : MonoBehaviour
 {
     #region Private Variables
 
-    [SerializeField] private float _speed = 3.5f;
+    [SerializeField] private float _speed = 5f;
+    [SerializeField] private float _SpeedThruster = 2;
     [SerializeField] private float _speedMultiplier = 2f;
     [SerializeField] private float _fireRate = 0.5f;
     [SerializeField] private int _lives = 3;
+    [SerializeField] private int _shieldEndurance = 3;
     [SerializeField] private int _score = 0;
+    [SerializeField] private int _maxAmmoCount = 15;
 
     [SerializeField] private GameObject _laserPrefab;
     [SerializeField] private GameObject _tripleShotPrefab;
     [SerializeField] private GameObject _shieldVisualizer;
+    [SerializeField] private GameObject _mayhemPrefab;
     [SerializeField] private GameObject _rightEngine;
     [SerializeField] private GameObject _leftEngine;
     [SerializeField] private AudioClip _laserSFX;
+    [SerializeField] private Animator _cameraAnimator;
+    [SerializeField] private SpriteRenderer _shieldMaterial;
 
     private AudioSource _audioSource;
 
+    private int _currentAmmoCount;
     private bool _isTripleShotActive = false;
     private bool _isSpeedBoostActive = false;
     private bool _isShieldActive = false;
+    private bool _isMayhemActive = false;
     private float _canFire = -1f;
 
     #endregion
@@ -32,6 +40,7 @@ public class Player : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        _currentAmmoCount = _maxAmmoCount;
         transform.position = new Vector3(0, 0, 0);
         _rightEngine.SetActive(false);
         _leftEngine.SetActive(false);
@@ -63,7 +72,13 @@ public class Player : MonoBehaviour
         float verticalMovement = Input.GetAxis("Vertical");
         Vector3 direction = new Vector3(horizontalMovement, verticalMovement, 0);
 
-        transform.Translate(direction * _speed * Time.deltaTime);
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            float newSpeed = _speed + _SpeedThruster;
+            transform.Translate(direction * newSpeed * Time.deltaTime);
+        }
+        else
+            transform.Translate(direction * _speed * Time.deltaTime);
 
         transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -3.8f, 0), 0);
 
@@ -83,13 +98,23 @@ public class Player : MonoBehaviour
         if (_isTripleShotActive == true)
         {
             Instantiate(_tripleShotPrefab, transform.position, Quaternion.identity);
+            _audioSource.PlayOneShot(_laserSFX);
+        }
+        if (_isMayhemActive == true)
+        {
+            Instantiate(_mayhemPrefab, transform.position, Quaternion.identity);
+            _audioSource.PlayOneShot(_laserSFX);
         }
         else
         {
-            Instantiate(_laserPrefab, transform.position + new Vector3(0, 1.05f, 0), Quaternion.identity);
+            if (_currentAmmoCount > 0)
+            {
+                Instantiate(_laserPrefab, transform.position + new Vector3(0, 1.05f, 0), Quaternion.identity);
+                _currentAmmoCount--;
+                UIManager.Instance.UpdateAmmoText(_currentAmmoCount);
+                _audioSource.PlayOneShot(_laserSFX);
+            }
         }
-
-        _audioSource.PlayOneShot(_laserSFX);
     }
 
     /// <summary>
@@ -109,12 +134,29 @@ public class Player : MonoBehaviour
     {
         if (_isShieldActive)
         {
-            _isShieldActive = false;
-            _shieldVisualizer.SetActive(false);
-            return;
+            _shieldEndurance--;
+
+            if (_shieldEndurance == 2)
+            {
+                _shieldMaterial.material.color = Color.yellow;
+                return;
+            }
+            else if (_shieldEndurance == 1)
+            {
+                _shieldMaterial.material.color = Color.red;
+                return;
+            }
+            else if (_shieldEndurance == 0)
+            {
+                _isShieldActive = false;
+                _shieldVisualizer.SetActive(false);
+                _shieldMaterial.material.color = Color.white;
+                return;
+            }
         }
 
         _lives--;
+        _cameraAnimator.SetTrigger("ShakeCamera");
         UIManager.Instance.UpdateLives(_lives);
 
         if (_lives == 2)
@@ -158,6 +200,36 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
+    /// Reloads the player's ammo
+    /// </summary>
+    public void ReloadAmmo()
+    {
+        _currentAmmoCount = _maxAmmoCount;
+        UIManager.Instance.UpdateAmmoText(_currentAmmoCount);
+    }
+
+    /// <summary>
+    /// Adds 1 health point to the player
+    /// </summary>
+    public void AddHealth()
+    {
+        if (_lives < 3)
+        {
+            _lives++;
+            UIManager.Instance.UpdateLives(_lives);
+        }
+    }
+
+    /// <summary>
+    /// Enables the Mayhem power up
+    /// </summary>
+    public void MayhemActive()
+    {
+        _isMayhemActive = true;
+        StartCoroutine(MayhemPowerDownRoutine());
+    }
+
+    /// <summary>
     /// A routine to stop the triple shot power up
     /// </summary>
     IEnumerator TripleShotPowerDownRoutine()
@@ -176,6 +248,16 @@ public class Player : MonoBehaviour
 
         _isSpeedBoostActive = false;
         _speed /= _speedMultiplier;
+    }
+
+    /// <summary>
+    /// A routine to stop the Mayhem power up
+    /// </summary>
+    IEnumerator MayhemPowerDownRoutine()
+    {
+        yield return new WaitForSeconds(5.0f);
+
+        _isMayhemActive = false;
     }
 
     #endregion

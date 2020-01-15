@@ -43,6 +43,15 @@ public class Powerup : MonoBehaviour
                     case 2:
                         player.ShieldActive();
                         break;
+                    case 3:
+                        player.ReloadAmmo();
+                        break;
+                    case 4:
+                        player.AddHealth();
+                        break;
+                    case 5:
+                        player.MayhemActive();
+                        break;
                     default:
                         break;
                 }

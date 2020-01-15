@@ -7,6 +7,7 @@ public class UIManager : MonoBehaviour
     #region Private Variables
 
     [SerializeField] private Text _scoreText;
+    [SerializeField] private Text _ammoText;
     [SerializeField] private Image _livesImage; 
     [SerializeField] private Sprite[] _livesSprites;
     [SerializeField] private Text _gameOverText;
@@ -55,12 +56,22 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Updates the ammo count in the UI
+    /// </summary>
+    /// <param name="ammo">The ammo count to be updated;</param>
+    public void UpdateAmmoText(int ammo)
+    {
+        _ammoText.text = "Ammo: " + ammo.ToString();
+    }
+
+    /// <summary>
     /// Updates the lives display in the UI
     /// </summary>
     /// <param name="currentLives">The number of lives the player has</param>
     public void UpdateLives(int currentLives)
     {
-        _livesImage.sprite = _livesSprites[currentLives];
+        if (currentLives < _livesSprites.Length)
+            _livesImage.sprite = _livesSprites[currentLives];
 
         if (currentLives == 0)
         {
