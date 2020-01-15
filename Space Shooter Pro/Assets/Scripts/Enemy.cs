@@ -10,6 +10,7 @@ public class Enemy : MonoBehaviour
 
     private float _fireRate = 3.0f;
     private float _canFire = -1f;
+    private bool _shootLaser = true;
 
     private AudioSource _audioSource;
     private Player _player;
@@ -32,15 +33,18 @@ public class Enemy : MonoBehaviour
     {
         MoveEnemy();
         
-        if (Time.time > _canFire)
+        if (_shootLaser == true)
         {
-            _fireRate = Random.Range(3f, 7f);
-            _canFire = Time.time + _fireRate;
-            GameObject enemyLaser = Instantiate(_laserPrefab, transform.position, Quaternion.identity);
-            Laser[] lasers = enemyLaser.GetComponentsInChildren<Laser>();
+            if (Time.time > _canFire)
+            {
+                _fireRate = Random.Range(3f, 7f);
+                _canFire = Time.time + _fireRate;
+                GameObject enemyLaser = Instantiate(_laserPrefab, transform.position, Quaternion.identity);
+                Laser[] lasers = enemyLaser.GetComponentsInChildren<Laser>();
 
-            for (int i = 0; i < lasers.Length; i++)
-                lasers[i].AssignEnemyLaser();
+                for (int i = 0; i < lasers.Length; i++)
+                    lasers[i].AssignEnemyLaser();
+            }
         }
     }
 
@@ -52,19 +56,30 @@ public class Enemy : MonoBehaviour
     {
         if (other.gameObject.tag.Equals("Laser"))
         {
-            Destroy(other.gameObject);
-            _speed = 0;
-            _anim.SetTrigger("OnEnemyDeath");
-            this.GetComponent<BoxCollider2D>().enabled = false;
-            _audioSource.Play();
+            Laser laser = other.GetComponent<Laser>();
 
-            if (_player != null)
-                _player.AddScore(_scoreValue);
+            if (laser.IsEnemyLaser() == true)
+            {
+                Destroy(other.gameObject);
+            }
+            else
+            {
+                _shootLaser = false;
+                Destroy(other.gameObject);
+                _speed = 0;
+                _anim.SetTrigger("OnEnemyDeath");
+                this.GetComponent<BoxCollider2D>().enabled = false;
+                _audioSource.Play();
 
-            Destroy(this.gameObject, 2.6f);
+                if (_player != null)
+                    _player.AddScore(_scoreValue);
+
+                Destroy(this.gameObject, 2.6f);
+            }
         }
         else if (other.gameObject.tag.Equals("Player"))
         {
+            _shootLaser = false;
             _speed = 0;
             _anim.SetTrigger("OnEnemyDeath");
             this.GetComponent<BoxCollider2D>().enabled = false;

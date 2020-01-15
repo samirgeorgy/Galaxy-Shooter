@@ -20,13 +20,17 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject _mayhemPrefab;
     [SerializeField] private GameObject _rightEngine;
     [SerializeField] private GameObject _leftEngine;
+    [SerializeField] private GameObject _explosionPrefab;
     [SerializeField] private AudioClip _laserSFX;
+    [SerializeField] private AudioClip _explosionSFX;
     [SerializeField] private Animator _cameraAnimator;
     [SerializeField] private SpriteRenderer _shieldMaterial;
 
     private AudioSource _audioSource;
 
     private int _currentAmmoCount;
+    private int _thrustersLevel = 100;
+    private bool _canUseThrusters = true;
     private bool _isTripleShotActive = false;
     private bool _isSpeedBoostActive = false;
     private bool _isShieldActive = false;
@@ -72,10 +76,18 @@ public class Player : MonoBehaviour
         float verticalMovement = Input.GetAxis("Vertical");
         Vector3 direction = new Vector3(horizontalMovement, verticalMovement, 0);
 
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift) && (_canUseThrusters == true))
         {
             float newSpeed = _speed + _SpeedThruster;
             transform.Translate(direction * newSpeed * Time.deltaTime);
+            _thrustersLevel -= 1;
+            UIManager.Instance.UpdateThurstersLevel(_thrustersLevel);
+
+            if (_thrustersLevel == 0)
+            {
+                _canUseThrusters = false;
+                StartCoroutine(RechargeThursters());
+            }
         }
         else
             transform.Translate(direction * _speed * Time.deltaTime);
@@ -167,7 +179,10 @@ public class Player : MonoBehaviour
         if (_lives < 1)
         {
             SpawnManager.Instance.OnPlayerDeath();
-            Destroy(this.gameObject);
+            this.gameObject.SetActive(false);
+            Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
+            _audioSource.PlayOneShot(_explosionSFX);
+            Destroy(this.gameObject, 3.0f);
         }
     }
 
@@ -196,6 +211,8 @@ public class Player : MonoBehaviour
     public void ShieldActive()
     {
         _isShieldActive = true;
+        _shieldEndurance = 3;
+        _shieldMaterial.material.color = Color.white;
         _shieldVisualizer.SetActive(true);
     }
 
@@ -217,6 +234,11 @@ public class Player : MonoBehaviour
         {
             _lives++;
             UIManager.Instance.UpdateLives(_lives);
+
+            if (_lives > 2)
+                _leftEngine.SetActive(false);
+            else if (_lives > 1)
+                _rightEngine.SetActive(false);
         }
     }
 
@@ -258,6 +280,23 @@ public class Player : MonoBehaviour
         yield return new WaitForSeconds(5.0f);
 
         _isMayhemActive = false;
+    }
+
+    /// <summary>
+    /// A routine to recharge the player's thrusters
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator RechargeThursters()
+    {
+        yield return new WaitForSeconds(5.0f);
+
+        while (_thrustersLevel != 100)
+        {
+            _thrustersLevel += 1;
+            UIManager.Instance.UpdateThurstersLevel(_thrustersLevel);
+        }
+
+        _canUseThrusters = true;
     }
 
     #endregion

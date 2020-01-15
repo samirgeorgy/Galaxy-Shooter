@@ -8,6 +8,7 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private Text _scoreText;
     [SerializeField] private Text _ammoText;
+    [SerializeField] private Text _thrustersLevel;
     [SerializeField] private Image _livesImage; 
     [SerializeField] private Sprite[] _livesSprites;
     [SerializeField] private Text _gameOverText;
@@ -77,6 +78,15 @@ public class UIManager : MonoBehaviour
         {
             GameOverSequence();
         }
+    }
+
+    /// <summary>
+    /// Updates the player's thursters level in the UI
+    /// </summary>
+    /// <param name="level">The leve to be updated</param>
+    public void UpdateThurstersLevel(int level)
+    {
+        _thrustersLevel.text = "Thrusters: " + level.ToString() +"%";
     }
 
     /// <summary>

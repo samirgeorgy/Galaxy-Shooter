@@ -83,5 +83,14 @@ public class Laser : MonoBehaviour
         _isEnemyLaser = true;
     }
 
+    /// <summary>
+    /// Checks whether the laser is of the enemy or not.
+    /// </summary>
+    /// <returns>True if the laser is from an enemy and false if not.</returns>
+    public bool IsEnemyLaser()
+    {
+        return _isEnemyLaser;
+    }
+
     #endregion
 }
