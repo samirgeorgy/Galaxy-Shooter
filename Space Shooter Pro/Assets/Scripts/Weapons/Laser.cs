@@ -1,20 +1,13 @@
 ﻿using UnityEngine;
 
-public class Laser : MonoBehaviour
+public class Laser : Projectile
 {
-    #region Private Variables
-
-    [SerializeField] private float _speed = 8.0f;
-    private bool _isEnemyLaser = false;
-
-    #endregion
-
     #region Unity Functions
 
     // Update is called once per frame
     void Update()
     {
-        if (_isEnemyLaser == false)
+        if (_isEnemyProjectile == false)
             MoveLaserUp();
         else
             MoveLaserDown();
@@ -26,7 +19,7 @@ public class Laser : MonoBehaviour
     /// <param name="collision">The collider object</param>
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag.Equals("Player") && (_isEnemyLaser == true))
+        if (collision.tag.Equals("Player") && (_isEnemyProjectile == true))
         {
             Player player = collision.GetComponent<Player>();
 
@@ -73,23 +66,6 @@ public class Laser : MonoBehaviour
 
             Destroy(this.gameObject);
         }
-    }
-
-    /// <summary>
-    /// Marks the laser as enemy laser
-    /// </summary>
-    public void AssignEnemyLaser()
-    {
-        _isEnemyLaser = true;
-    }
-
-    /// <summary>
-    /// Checks whether the laser is of the enemy or not.
-    /// </summary>
-    /// <returns>True if the laser is from an enemy and false if not.</returns>
-    public bool IsEnemyLaser()
-    {
-        return _isEnemyLaser;
     }
 
     #endregion

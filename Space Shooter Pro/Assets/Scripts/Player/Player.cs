@@ -13,8 +13,11 @@ public class Player : MonoBehaviour
     [SerializeField] private int _shieldEndurance = 3;
     [SerializeField] private int _score = 0;
     [SerializeField] private int _maxAmmoCount = 15;
+    [SerializeField] private int _missileAmmoCount = 0;
+    [SerializeField] private int _maxMissileAmmo = 3;
 
     [SerializeField] private GameObject _laserPrefab;
+    [SerializeField] private GameObject _missilePrefab;
     [SerializeField] private GameObject _tripleShotPrefab;
     [SerializeField] private GameObject _shieldVisualizer;
     [SerializeField] private GameObject _mayhemPrefab;
@@ -23,6 +26,8 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject _explosionPrefab;
     [SerializeField] private AudioClip _laserSFX;
     [SerializeField] private AudioClip _explosionSFX;
+    [SerializeField] private AudioClip _missileSFX;
+    [SerializeField] private Animator _playerAnimation;
     [SerializeField] private Animator _cameraAnimator;
     [SerializeField] private SpriteRenderer _shieldMaterial;
 
@@ -36,6 +41,7 @@ public class Player : MonoBehaviour
     private bool _isShieldActive = false;
     private bool _isMayhemActive = false;
     private float _canFire = -1f;
+    private bool _isPlayerDead = false;
 
     #endregion
 
@@ -61,6 +67,10 @@ public class Player : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && (Time.time > _canFire))
             FireLaser();
+
+        if (Input.GetKeyDown(KeyCode.F) && (_missileAmmoCount != 0))
+            FireMissile();
+
     }
 
     #endregion
@@ -81,7 +91,7 @@ public class Player : MonoBehaviour
             float newSpeed = _speed + _SpeedThruster;
             transform.Translate(direction * newSpeed * Time.deltaTime);
             _thrustersLevel -= 1;
-            UIManager.Instance.UpdateThurstersLevel(_thrustersLevel);
+            UIManager.Instance.UpdateThurstersLevel(_thrustersLevel.ToString() + "%");
 
             if (_thrustersLevel == 0)
             {
@@ -92,7 +102,8 @@ public class Player : MonoBehaviour
         else
             transform.Translate(direction * _speed * Time.deltaTime);
 
-        transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -3.8f, 0), 0);
+        _playerAnimation.SetFloat("Horizontal", horizontalMovement);
+        transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -3.8f, 3.8f), 0);
 
         if (transform.position.x > 11.3f)
             transform.position = new Vector3(-11.3f, transform.position.y, 0);
@@ -127,6 +138,20 @@ public class Player : MonoBehaviour
                 _audioSource.PlayOneShot(_laserSFX);
             }
         }
+    }
+
+    /// <summary>
+    /// Fires the missile
+    /// </summary>
+    private void FireMissile()
+    {
+        Instantiate(_missilePrefab, transform.position, Quaternion.identity);
+        _missileAmmoCount--;
+        UIManager.Instance.UpdateMissileAmmoText(_missileAmmoCount);
+        _audioSource.PlayOneShot(_missileSFX);
+
+        if (_missileAmmoCount <= 0)
+            UIManager.Instance.DisableMessageText();
     }
 
     /// <summary>
@@ -178,12 +203,22 @@ public class Player : MonoBehaviour
 
         if (_lives < 1)
         {
+            _isPlayerDead = true;
             SpawnManager.Instance.OnPlayerDeath();
             this.gameObject.SetActive(false);
             Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
             _audioSource.PlayOneShot(_explosionSFX);
             Destroy(this.gameObject, 3.0f);
         }
+    }
+
+    /// <summary>
+    /// Checks whether the player is dead or not
+    /// </summary>
+    /// <returns>True of player is dead and false otherwise</returns>
+    public bool IsPlayerDead()
+    {
+        return _isPlayerDead;
     }
 
     /// <summary>
@@ -252,6 +287,29 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
+    /// Crumbles the engine
+    /// </summary>
+    public void EngineCrumble()
+    {
+        _speed /= 2;
+        StartCoroutine(FixEnginesRoutine());
+
+    }
+
+    /// <summary>
+    /// Adds One Missile Ammo
+    /// </summary>
+    public void AddMissileAmmo()
+    {
+        if (_missileAmmoCount < _maxMissileAmmo)
+        {
+            _missileAmmoCount++;
+            UIManager.Instance.UpdateMissileAmmoText(_missileAmmoCount);
+            UIManager.Instance.EnableMessageText();
+        }
+    }
+
+    /// <summary>
     /// A routine to stop the triple shot power up
     /// </summary>
     IEnumerator TripleShotPowerDownRoutine()
@@ -285,7 +343,6 @@ public class Player : MonoBehaviour
     /// <summary>
     /// A routine to recharge the player's thrusters
     /// </summary>
-    /// <returns></returns>
     IEnumerator RechargeThursters()
     {
         yield return new WaitForSeconds(5.0f);
@@ -293,10 +350,29 @@ public class Player : MonoBehaviour
         while (_thrustersLevel != 100)
         {
             _thrustersLevel += 1;
-            UIManager.Instance.UpdateThurstersLevel(_thrustersLevel);
+            UIManager.Instance.UpdateThurstersLevel(_thrustersLevel.ToString() + "%");
         }
 
         _canUseThrusters = true;
+    }
+
+    /// <summary>
+    /// Fixes the engine thrusters
+    /// </summary>
+    IEnumerator FixEnginesRoutine()
+    {
+        UIManager.Instance.UpdateThurstersLevel("Engine Error! Attempting Restart!");
+        _thrustersLevel = 0;
+
+        yield return new WaitForSeconds(4);
+
+        UIManager.Instance.UpdateThurstersLevel("Engine Restart Successful! Power Regained...");
+
+        yield return new WaitForSeconds(1);
+
+        _speed *= 2;
+        _thrustersLevel = 100;
+        UIManager.Instance.UpdateThurstersLevel(_thrustersLevel.ToString() + "%");
     }
 
     #endregion

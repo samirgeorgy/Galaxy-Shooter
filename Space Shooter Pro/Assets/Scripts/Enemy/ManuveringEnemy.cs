@@ -1,20 +1,11 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class ManuveringEnemy : Enemy
 {
     #region Private variables
 
-    [SerializeField] private float _speed = 4.0f;
-    [SerializeField] private int _scoreValue = 10;
-    [SerializeField] private GameObject _laserPrefab;
-
-    private float _fireRate = 3.0f;
-    private float _canFire = -1f;
-    private bool _shootLaser = true;
-
-    private AudioSource _audioSource;
-    private Player _player;
-    private Animator _anim;
+    [SerializeField] private int _frequency = 3;
 
     #endregion
 
@@ -23,29 +14,22 @@ public class Enemy : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
+        try
+        {
+            _player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
+        }
+        catch { }
+        
         _anim = GetComponent<Animator>();
         _audioSource = GetComponent<AudioSource>();
+
+        StartCoroutine(ShootLaserBeam());
     }
 
     // Update is called once per frame
     void Update()
     {
         MoveEnemy();
-        
-        if (_shootLaser == true)
-        {
-            if (Time.time > _canFire)
-            {
-                _fireRate = Random.Range(3f, 7f);
-                _canFire = Time.time + _fireRate;
-                GameObject enemyLaser = Instantiate(_laserPrefab, transform.position, Quaternion.identity);
-                Laser[] lasers = enemyLaser.GetComponentsInChildren<Laser>();
-
-                for (int i = 0; i < lasers.Length; i++)
-                    lasers[i].AssignEnemyLaser();
-            }
-        }
     }
 
     /// <summary>
@@ -56,9 +40,9 @@ public class Enemy : MonoBehaviour
     {
         if (other.gameObject.tag.Equals("Laser"))
         {
-            Laser laser = other.GetComponent<Laser>();
+            Projectile projectile = other.GetComponent<Projectile>();
 
-            if (laser.IsEnemyLaser() == true)
+            if (projectile.IsEnemyProjectile() == true)
             {
                 Destroy(other.gameObject);
             }
@@ -69,11 +53,12 @@ public class Enemy : MonoBehaviour
                 _speed = 0;
                 _anim.SetTrigger("OnEnemyDeath");
                 this.GetComponent<BoxCollider2D>().enabled = false;
-                _audioSource.Play();
+                _audioSource.PlayOneShot(_explosionSFX);
 
                 if (_player != null)
                     _player.AddScore(_scoreValue);
 
+                Destroy(other.gameObject);
                 Destroy(this.gameObject, 2.6f);
             }
         }
@@ -83,7 +68,7 @@ public class Enemy : MonoBehaviour
             _speed = 0;
             _anim.SetTrigger("OnEnemyDeath");
             this.GetComponent<BoxCollider2D>().enabled = false;
-            _audioSource.Play();
+            _audioSource.PlayOneShot(_explosionSFX);
 
             if (_player != null)
             {
@@ -104,12 +89,51 @@ public class Enemy : MonoBehaviour
     /// </summary>
     private void MoveEnemy()
     {
-        transform.Translate(Vector3.down * _speed * Time.deltaTime);
+        Vector3 direction = new Vector3(Mathf.Sin(Time.time * _frequency), -1, 0);
+        transform.Translate(direction * _speed * Time.deltaTime);
 
         if (transform.position.y < -6.0f)
         {
             float randomX = Random.Range(-8f, 8f);
             transform.position = new Vector3(randomX, 7, 0);
+        }
+    }
+
+    /// <summary>
+    /// Shoots the enemy laser
+    /// </summary>
+    private void ShootLaser()
+    {
+        GameObject enemyLaser = Instantiate(_laserPrefab, transform.position, Quaternion.identity);
+        _audioSource.PlayOneShot(_laserSFX);
+        Laser[] lasers = enemyLaser.GetComponentsInChildren<Laser>();
+
+        for (int i = 0; i < lasers.Length; i++)
+            lasers[i].AssignEnemyProjectile();
+    }
+
+    IEnumerator ShootLaserBeam()
+    {
+        yield return new WaitForSeconds(Random.Range(1, 2));
+
+        while (true)
+        {
+            if (_shootLaser == true)
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    if (_shootLaser == true)
+                        ShootLaser();
+                    else
+                        break;
+
+                    yield return new WaitForSeconds(0.1f);
+                }
+
+                yield return new WaitForSeconds(Random.Range(1, 2));
+            }
+            else
+                break;
         }
     }
 

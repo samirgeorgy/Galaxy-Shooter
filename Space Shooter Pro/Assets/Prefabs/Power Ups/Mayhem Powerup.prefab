@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 8326456611586955750}
   - component: {fileID: 9081606298033338693}
   - component: {fileID: 3814407471111280685}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Mayhem Powerup
-  m_TagString: Untagged
+  m_TagString: PowerUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -98,6 +98,9 @@ MonoBehaviour:
   _speed: 3
   _powerupID: 5
   _clip: {fileID: 8300000, guid: 5ee343246919d2b4bba63ae629e95494, type: 3}
+  _explosionSFX: {fileID: 8300000, guid: a885c043fab7e46438bba03ba9dab6bc, type: 3}
+  _explosionEffect: {fileID: 1590537251583088902, guid: d1f5b8fc994c8cc4ab69cc6205eb7083,
+    type: 3}
 --- !u!61 &9081606298033338693
 BoxCollider2D:
   m_ObjectHideFlags: 0
